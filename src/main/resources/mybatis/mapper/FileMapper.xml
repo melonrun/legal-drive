@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wordstalk.legal.drive.access.dao.document.mapper.FileMapper">
+    <resultMap id="fileDO" type="com.wordstalk.legal.drive.access.dao.document.model.FileDO">
+        <id property="id" column="id"/>
+        <result property="fileName" column="file_name"/>
+        <result property="filePath" column="file_path"/>
+        <result property="fileType" column="file_type"/>
+        <result property="teamId" column="team_id"/>
+        <result property="ownerId" column="owner_id"/>
+        <result property="parentId" column="parent_id"/>
+        <result property="tagList" column="tag_list"/>
+        <result property="modifyTime" column="modify_time"/>
+        <result property="status" column="status"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <insert id="insertFile" parameterType="com.wordstalk.legal.drive.access.dao.document.model.FileDO"
+            useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO legal_file_info
+        (file_name, file_path, file_type, team_id, owner_id, parent_id,
+          tag_list, modify_time, status, create_time, update_time)
+        VALUES
+        (#{fileName}, #{filePath}, #{fileType}, #{teamId}, #{ownerId}, #{parentId},
+        #{tagList}, #{modifyTime}, #{status}, #{createTime}, NOW())
+    </insert>
+
+    <select id="listFilesOneTeam" parameterType="java.util.Map" resultMap="fileDO">
+        SELECT a.id, a.file_name, a.file_path, a.file_type, b.team_name as team_id, c.user_name as owner_id,
+        d.tag_name as tag_list, a.modify_time, a.status, a.create_time
+        FROM legal_file_info a LEFT JOIN legal_team_info b ON a.team_id = b.id
+        LEFT JOIN legal_user_info c ON a.owner_id = c.id
+        LEFT JOIN legal_tag_info d ON a.tag_list = d.id
+        <where>
+            1 = 1 AND a.team_id = #{teamId} AND a.file_type = 1
+            <if test="status != null and status != -1">
+                AND a.status=#{status}
+            </if>
+        </where>
+        ORDER BY a.id
+        <if test="start != null and start != -1">
+            LIMIT #{start}, #{size}
+        </if>
+    </select>
+
+    <select id="listFileMultiTeam" parameterType="java.util.Map" resultMap="fileDO">
+        SELECT a.id, a.file_name, a.file_path, a.file_type, b.team_name as team_id, c.user_name as owner_id,
+        d.tag_name as tag_list, a.modify_time, a.status, a.create_time
+        FROM legal_file_info a LEFT JOIN legal_team_info b ON a.team_id = b.id
+        LEFT JOIN legal_user_info c ON a.owner_id = c.id
+        LEFT JOIN legal_tag_info d ON a.tag_list = d.id
+        <where>
+            1 = 1
+            <if test="status != null and status != -1">
+                AND a.status=#{status}
+            </if>
+            <if test="parentId != null and parentId != -1">
+                AND a.parent_id=#{parentId}
+            </if>
+            AND a.team_id in
+            <foreach collection="teamIds" index="index" item="item" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </where>
+        ORDER BY a.file_type DESC, a.id
+        <if test="start != null and start != -1">
+            LIMIT #{start}, #{size}
+        </if>
+    </select>
+
+    <select id="countFileMultiTeam" parameterType="java.util.Map" resultType="long">
+        SELECT count(1)
+        FROM legal_file_info
+        <where>
+            1 = 1
+            <if test="status != null and status != -1">
+                AND status=#{status}
+            </if>
+            <if test="parentId != null and parentId != -1">
+                AND parent_id=#{parentId}
+            </if>
+            AND team_id in
+            <foreach collection="teamIds" index="index" item="item" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </where>
+    </select>
+
+    <select id="countFilesOneTeam" parameterType="java.util.Map" resultType="long">
+        SELECT count(1)
+        FROM legal_file_info
+        <where>
+            1 = 1 AND team_id = #{teamId} AND file_type = 1
+            <if test="status != null and status != -1">
+                AND status=#{status}
+            </if>
+        </where>
+    </select>
+
+    <select id="queryPathByTeamId" resultType="java.lang.String">
+        SELECT file_path FROM legal_file_info
+        WHERE team_id = #{teamId} AND file_type = 2
+        ORDER BY id LIMIT 1
+    </select>
+
+    <select id="getFileById" resultMap="fileDO">
+        SELECT id,file_name,file_path,file_type,team_id,owner_id,parent_id,
+          tag_list, modify_time FROM legal_file_info WHERE id = #{parentId}
+    </select>
+</mapper>

@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wordstalk.legal.drive.access.dao.profile.mapper.UserMapper">
+    <resultMap id="EntryDO" type="com.wordstalk.legal.drive.access.dao.profile.model.EntryDO">
+        <id property="id" column="id"/>
+        <result property="userName" column="user_name"/>
+        <result property="userPass" column="user_pass"/>
+        <result property="roleNameDisplay" column="role_name_display"/>
+        <result property="roleId" column="role_id"/>
+        <result property="teamList" column="team_list"/>
+        <result property="loginTime" column="login_time"/>
+        <result property="loginIp" column="login_ip"/>
+    </resultMap>
+
+    <resultMap id="userShowDO" type="com.wordstalk.legal.drive.access.dao.profile.model.UserShowDO">
+        <id property="userId" column="id"/>
+        <result property="userName" column="user_name"/>
+        <result property="roleId" column="role_id"/>
+        <result property="roleName" column="role_name_display"/>
+        <result property="teamList" column="team_list"/>
+    </resultMap>
+
+    <select id="loginByNameAndPass" parameterType="java.util.Map" resultMap="EntryDO">
+        SELECT a.id, a.user_name, c.role_name_display, c.id as role_id, d.team_list as team_list
+        FROM legal_user_info a LEFT JOIN legal_user_join_role b ON a.id = b.user_id LEFT JOIN
+        legal_role_info c ON b.role_id = c.id LEFT JOIN legal_user_join_team d ON a.id = d.user_id
+        <where>
+            a.user_name=#{userName} AND a.user_pass=#{userPass} AND b.status=1
+        </where>
+    </select>
+
+    <select id="listUserShowDO" parameterType="com.wordstalk.legal.drive.access.dao.profile.model.SearchDO"
+            resultMap="userShowDO">
+        SELECT a.id, a.user_name, c.id as role_id, c.role_name_display, d.team_list
+        FROM legal_user_info a LEFT JOIN legal_user_join_role b ON a.id=b.user_id LEFT JOIN
+        legal_role_info c ON b.role_id = c.id LEFT JOIN legal_user_join_team d ON a.id = d.user_id
+        <where>
+            1 = 1
+            <if test="searchKeyWords != null">
+                AND a.user_name LIKE concat(concat('%',#{searchKeyWords}),'%')
+            </if>
+        </where>
+        ORDER BY a.id
+        <if test="start != null and start != -1">
+            LIMIT #{start}, #{size}
+        </if>
+    </select>
+
+    <select id="queryUserCount" parameterType="com.wordstalk.legal.drive.access.dao.profile.model.SearchDO"
+            resultType="long">
+        SELECT count(1)
+        FROM legal_user_info
+    </select>
+
+    <update id="updateTimeAndIp" parameterType="java.util.Map">
+        UPDATE legal_user_info SET update_time=now(), login_ip=#{loginIp} WHERE id=#{id}
+    </update>
+
+    <insert id="addUserAndGetId" parameterType="com.wordstalk.legal.drive.access.dao.profile.model.UserDO"
+            useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO legal_user_info
+        (user_name, user_pass, login_time, create_time, update_time)
+        VALUES
+        (#{userName}, #{userPass}, NOW(), NOW(), NOW())
+    </insert>
+
+    <insert id="addUserJoinRole" useGeneratedKeys="true">
+        INSERT INTO legal_user_join_role
+        (user_id, role_id, status, create_time, update_time)
+        VALUES
+        (#{userId}, #{roleId}, 1, NOW(), NOW())
+    </insert>
+
+    <insert id="addUserJoinTeam" useGeneratedKeys="true">
+        INSERT INTO legal_user_join_team
+        (user_id, team_list, status, create_time, update_time)
+        VALUES
+        (#{userId}, #{teamList}, 1, NOW(), NOW())
+    </insert>
+
+    <update id="updateUser" parameterType="com.wordstalk.legal.drive.access.dao.profile.model.UserDO">
+        UPDATE legal_user_info SET user_name=#{userName}, user_pass=#{userPass}, update_time=NOW()
+        WHERE id=#{id}
+    </update>
+
+    <update id="updateUserJoinRole">
+        UPDATE legal_user_join_role SET role_id=#{roleId}, status=1, update_time=NOW()
+        WHERE user_id = #{userId}
+    </update>
+
+    <update id="updateUserJoinTeam">
+        UPDATE legal_user_join_team SET team_list=#{teamList}, status=1, update_time=NOW()
+        WHERE user_id = #{userId}
+    </update>
+
+    <select id="getUserById" resultType="java.lang.String">
+        SELECT user_name FROM legal_user_info
+        WHERE id = #{userId}
+    </select>
+</mapper>

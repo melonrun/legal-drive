@@ -66,27 +66,6 @@
         </encoder>
     </appender>
 
-    <appender name="ACCESS" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>${log.dir}/access.log</file>
-        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <!-- daily rollover -->
-            <fileNamePattern>
-                ${log.history.dir}/access.log.%d{yyyy-MM-dd}.gz
-            </fileNamePattern>
-            <maxHistory>15</maxHistory>
-        </rollingPolicy>
-        <encoder>
-            <Pattern>
-                %msg%n
-            </Pattern>
-        </encoder>
-    </appender>
-
-    <logger name="LogService" additivity="false">
-        <appender-ref ref="ACCESS"/>
-        <level value="INFO"/>
-    </logger>
-
     <root>
         <level value="${log.level}"/>
         <appender-ref ref="ERR"/>

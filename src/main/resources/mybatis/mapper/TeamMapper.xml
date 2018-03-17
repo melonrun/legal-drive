@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wordstalk.legal.drive.access.dao.profile.mapper.TeamMapper">
+    <resultMap id="teamDO" type="com.wordstalk.legal.drive.access.dao.profile.model.TeamDO">
+        <id property="id" column="id"/>
+        <result property="teamName" column="team_name"/>
+        <result property="createTime" column="create_time"/>
+    </resultMap>
+
+    <select id="listTeams" parameterType="com.wordstalk.legal.drive.access.dao.profile.model.SearchDO"
+            resultMap="teamDO">
+        SELECT id, team_name, create_time
+        FROM legal_team_info
+        <where>
+            1 = 1
+            <if test="status != null and status != -1">
+                AND status=#{status}
+            </if>
+            <if test="searchKeyWords != null">
+                AND team_name LIKE concat(concat('%',#{searchKeyWords}),'%')
+            </if>
+        </where>
+        ORDER BY create_time
+        <if test="start != null and start != -1">
+            LIMIT #{start}, #{size}
+        </if>
+    </select>
+
+    <select id="queryTeamCount" parameterType="com.wordstalk.legal.drive.access.dao.profile.model.SearchDO"
+            resultType="long">
+        SELECT count(1)
+        FROM legal_team_info
+        <where>
+            1 = 1
+            <if test="status != null and status != -1">
+                AND status=#{status}
+            </if>
+        </where>
+    </select>
+
+    <insert id="addTeam" parameterType="com.wordstalk.legal.drive.access.dao.profile.model.TeamDO"
+            useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO legal_team_info
+        (team_name, status, owner_id, create_time, update_time)
+        VALUES
+        (#{teamName}, 1, #{ownerId}, NOW(), NOW())
+    </insert>
+
+    <update id="updateTeam" parameterType="com.wordstalk.legal.drive.access.dao.profile.model.TeamDO">
+        UPDATE legal_team_info SET team_name=#{teamName}, update_time=NOW()
+        WHERE id=#{id}
+    </update>
+
+    <select id="getTeamIdByPath" resultType="Long">
+        SELECT id FROM legal_team_info WHERE team_name = #{teamName}
+    </select>
+
+    <select id="getTeamById" resultMap="teamDO">
+        SELECT id, team_name, create_time
+        FROM legal_team_info
+        WHERE id = #{teamId}
+    </select>
+
+    <update id="updateFolderName">
+        UPDATE legal_team_info SET folder_name=#{folderName}
+        WHERE id=#{id}
+    </update>
+
+</mapper>

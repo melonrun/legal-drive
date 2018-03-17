@@ -9,6 +9,10 @@
     </settings>
 
     <mappers>
-        <mapper resource="mybatis/mapper/WUserMapper.xml"/>
+        <mapper resource="mybatis/mapper/LUserMapper.xml"/>
+        <mapper resource="mybatis/mapper/TeamMapper.xml"/>
+        <mapper resource="mybatis/mapper/TagMapper.xml"/>
+        <mapper resource="mybatis/mapper/RoleMapper.xml"/>
+        <mapper resource="mybatis/mapper/FileMapper.xml"/>
     </mappers>
 </configuration>

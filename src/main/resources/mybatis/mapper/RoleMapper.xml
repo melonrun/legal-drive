@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wordstalk.legal.drive.access.dao.profile.mapper.RoleMapper">
+    <resultMap id="roleDO" type="com.wordstalk.legal.drive.access.dao.profile.model.RoleDO">
+        <id property="roleId" column="id"/>
+        <result property="roleName" column="role_name_display"/>
+        <result property="createTime" column="create_time"/>
+    </resultMap>
+
+    <select id="listRoles" resultMap="roleDO">
+        SELECT id, role_name_display, create_time
+        FROM legal_role_info
+    </select>
+</mapper>
